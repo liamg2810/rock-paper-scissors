@@ -10,6 +10,9 @@ const config = {
   "enable-ts-pulugin": true,
   kit: {
     adapter: adapter(),
+    alias: {
+      $lib: "src/lib",
+    },
   },
 };
 
