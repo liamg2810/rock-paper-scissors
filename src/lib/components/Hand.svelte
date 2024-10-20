@@ -17,7 +17,7 @@
   export let rotY = 0;
   export let position = [0, 0, 0];
 
-  onMount(() => {
+  onMount(async () => {
     const animate = async () => {
       for (let i = 0; i < 3; i++) {
         await yPosition.set(5);
@@ -25,7 +25,9 @@
         dispatch("shakeCamera");
       }
     };
-    animate();
+    await animate();
+
+    dispatch("done");
   });
 </script>
 

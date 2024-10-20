@@ -1,13 +1,17 @@
 <script lang="ts">
   import { T, useFrame } from "@threlte/core";
-  import { interactivity, Text } from "@threlte/extras";
-  import { onMount } from "svelte";
+  import { interactivity, OrbitControls, Text, useGltf } from "@threlte/extras";
+  import { onMount, tick } from "svelte";
   import { cubicInOut } from "svelte/easing";
   import { tweened } from "svelte/motion";
   import { writable, type Writable } from "svelte/store";
+  import { Group } from "three";
   import { randInt } from "three/src/math/MathUtils.js";
   import Game from "./Game.svelte";
   interactivity();
+
+  const playBtnGltf = useGltf("assets/playbtn.gltf");
+  const ref = new Group();
 
   const numSquares = 20;
   const squares: Writable<{ position: number[]; speed: number }[]> = writable(
@@ -61,7 +65,9 @@
   on:create={({ ref }) => {
     ref.lookAt(0, 10, 0);
   }}
-></T.PerspectiveCamera>
+>
+  <!-- <OrbitControls /> -->
+</T.PerspectiveCamera>
 
 <T.AmbientLight intensity={0.3} />
 
@@ -70,31 +76,43 @@
 {#each $squares as square}
   <T.Mesh position={square.position} rotation={[0, Math.PI, 0]}>
     <T.PlaneGeometry args={[5, 5]} />
-    <T.MeshBasicMaterial color="#009999" />
+    <T.MeshBasicMaterial color="#222222" />
   </T.Mesh>
 {/each}
 
 {#if playing}
   <Game on:shakeCamera={shakeCamera}></Game>
-{:else}
-  <T.Mesh
-    position={[0, 10, -20]}
+{:else if $playBtnGltf}
+  <T
+    is={ref}
+    {...$$restProps}
+    position={[0, 10, -25]}
+    rotation={[Math.PI / 5, 0, 0]}
     on:click={playGame}
-    on:pointerenter={(e) => {
-      document.body.style.cursor = "pointer";
-    }}
-    on:pointerleave={(e) => {
-      document.body.style.cursor = "auto";
-    }}
-    rotation={[0, Math.PI, 0]}
+    on:pointerenter={() => (document.body.style.cursor = "pointer")}
+    on:pointerleave={() => (document.body.style.cursor = "auto")}
   >
-    <T.BoxGeometry args={[10, 5, 1]} />
-    <T.MeshStandardMaterial color="blue" />
+    <T.Mesh
+      geometry={$playBtnGltf.nodes.Front.geometry}
+      material={$playBtnGltf.materials.Primary}
+    />
+
+    <T.Mesh
+      geometry={$playBtnGltf.nodes.Border.geometry}
+      material={$playBtnGltf.materials.Border}
+    />
+
+    <T.Mesh
+      geometry={$playBtnGltf.nodes.Back.geometry}
+      material={$playBtnGltf.materials.Secondary}
+    />
     <Text
-      position={[-4, 1, 0.6]}
-      fontSize={1.6}
+      position={[6.1, 2, -0.5]}
+      rotation={[0, Math.PI, 0]}
+      fontSize={2.5}
       color="white"
       text={"Play Game"}
     ></Text>
-  </T.Mesh>
+    <slot {ref} />
+  </T>
 {/if}
